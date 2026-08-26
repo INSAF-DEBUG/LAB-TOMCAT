@@ -66,3 +66,12 @@ TOMCAT_URL="https://archive.apache.org/dist/tomcat/tomcat-9/v${TOMCAT_VERSION}/b
 curl -fL "$TOMCAT_URL" -o "$TOMCAT_ARCHIVE"
 
 echo "Archive téléchargée : $TOMCAT_ARCHIVE"
+
+echo ""
+echo "Configuration des permissions..."
+
+chown -R "$TOMCAT_USER:$TOMCAT_GROUP" "$TOMCAT_DIR"
+
+chmod +x "$TOMCAT_DIR"/bin/*.sh
+
+echo "Permissions configurées."
