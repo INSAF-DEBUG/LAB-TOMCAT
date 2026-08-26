@@ -35,3 +35,17 @@ fi
 
 echo "Version Java détectée :"
 java -version
+
+echo ""
+echo "Vérification de l'utilisateur Tomcat..."
+
+if id "$TOMCAT_USER" >/dev/null 2>&1; then
+    echo "L'utilisateur $TOMCAT_USER existe déjà."
+else
+    echo "Création de l'utilisateur $TOMCAT_USER..."
+
+    useradd --system --home-dir "$TOMCAT_DIR" \
+        --shell /sbin/nologin "$TOMCAT_USER"
+
+    echo "Utilisateur $TOMCAT_USER créé."
+fi
