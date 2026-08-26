@@ -75,3 +75,11 @@ chown -R "$TOMCAT_USER:$TOMCAT_GROUP" "$TOMCAT_DIR"
 chmod +x "$TOMCAT_DIR"/bin/*.sh
 
 echo "Permissions configurées."
+
+echo ""
+echo "Détermination de JAVA_HOME..."
+
+JAVA_BIN="$(readlink -f "$(command -v java)")"
+JAVA_HOME="$(dirname "$(dirname "$JAVA_BIN")")"
+
+echo "JAVA_HOME=$JAVA_HOME"
