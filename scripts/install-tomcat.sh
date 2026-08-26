@@ -21,3 +21,17 @@ echo "Utilisateur    : $TOMCAT_USER"
 echo "Répertoire     : $TOMCAT_DIR"
 echo "Port HTTP      : $TOMCAT_PORT"
 echo "Application     : $APP_NAME"
+echo ""
+echo "Vérification de Java..."
+
+if ! command -v java >/dev/null 2>&1; then
+    echo "Java n'est pas installé."
+    echo "Installation de OpenJDK 8..."
+
+    yum install -y java-1.8.0-openjdk-devel
+else
+    echo "Java est déjà installé."
+fi
+
+echo "Version Java détectée :"
+java -version
