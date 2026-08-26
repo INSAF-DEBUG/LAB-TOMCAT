@@ -159,3 +159,14 @@ cat > "$APP_DIR/index.html" <<EOF
 ...
 </html>
 EOF
+
+
+echo ""
+echo "Test de l'application ${APP_NAME}..."
+
+if curl -f "http://localhost:${TOMCAT_PORT}/${APP_NAME}/" >/dev/null; then
+    echo "Application ${APP_NAME} accessible avec succès."
+else
+    echo "Erreur : l'application ${APP_NAME} n'est pas accessible."
+    exit 1
+fi
