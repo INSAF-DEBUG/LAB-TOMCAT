@@ -2,8 +2,16 @@
 
 set -e
 
+# ======================================
+# Détermination des chemins
+# ======================================
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_FILE="$SCRIPT_DIR/../config/tomcat.conf"
+
+# ======================================
+# Vérification du fichier de configuration
+# ======================================
 
 if [ ! -f "$CONFIG_FILE" ]; then
     echo "Erreur : fichier de configuration introuvable : $CONFIG_FILE"
@@ -12,16 +20,36 @@ fi
 
 source "$CONFIG_FILE"
 
+# ======================================
+# Vérification des privilèges
+# ======================================
+
+if [ "$EUID" -ne 0 ]; then
+    echo "Erreur : ce script doit être exécuté en root."
+    echo "Utilisez : sudo $0"
+    exit 1
+fi
+
+# ======================================
+# Informations
+# ======================================
+
 echo "======================================"
 echo "      Installation de Apache Tomcat"
 echo "======================================"
 
 echo "Version Tomcat : $TOMCAT_VERSION"
 echo "Utilisateur    : $TOMCAT_USER"
+echo "Groupe         : $TOMCAT_GROUP"
 echo "Répertoire     : $TOMCAT_DIR"
 echo "Port HTTP      : $TOMCAT_PORT"
-echo "Application     : $APP_NAME"
+echo "Application    : $APP_NAME"
 echo ""
+
+# ======================================
+# Vérification / installation de Java
+# ======================================
+
 echo "Vérification de Java..."
 
 if ! command -v java >/dev/null 2>&1; then
@@ -33,8 +61,13 @@ else
     echo "Java est déjà installé."
 fi
 
+echo ""
 echo "Version Java détectée :"
 java -version
+
+# ======================================
+# Création de l'utilisateur Tomcat
+# ======================================
 
 echo ""
 echo "Vérification de l'utilisateur Tomcat..."
@@ -44,28 +77,58 @@ if id "$TOMCAT_USER" >/dev/null 2>&1; then
 else
     echo "Création de l'utilisateur $TOMCAT_USER..."
 
-    useradd --system --home-dir "$TOMCAT_DIR" \
-        --shell /sbin/nologin "$TOMCAT_USER"
+    useradd --system \
+        --home-dir "$TOMCAT_DIR" \
+        --shell /sbin/nologin \
+        "$TOMCAT_USER"
 
     echo "Utilisateur $TOMCAT_USER créé."
 fi
+
+# ======================================
+# Préparation du répertoire Tomcat
+# ======================================
 
 echo ""
 echo "Préparation du répertoire Tomcat..."
 
 mkdir -p "$TOMCAT_DIR"
 
-echo "Répertoire créé : $TOMCAT_DIR"
+echo "Répertoire préparé : $TOMCAT_DIR"
+
+# ======================================
+# Téléchargement de Tomcat
+# ======================================
 
 echo ""
 echo "Téléchargement de Tomcat $TOMCAT_VERSION..."
 
 TOMCAT_ARCHIVE="/tmp/apache-tomcat-${TOMCAT_VERSION}.tar.gz"
+
 TOMCAT_URL="https://archive.apache.org/dist/tomcat/tomcat-9/v${TOMCAT_VERSION}/bin/apache-tomcat-${TOMCAT_VERSION}.tar.gz"
 
 curl -fL "$TOMCAT_URL" -o "$TOMCAT_ARCHIVE"
 
 echo "Archive téléchargée : $TOMCAT_ARCHIVE"
+
+# ======================================
+# Extraction de Tomcat
+# ======================================
+
+echo ""
+echo "Extraction de Tomcat..."
+
+rm -rf "$TOMCAT_DIR"
+
+tar -xzf "$TOMCAT_ARCHIVE" -C /opt
+
+mv "/opt/apache-tomcat-${TOMCAT_VERSION}" "$TOMCAT_DIR"
+
+echo "Tomcat installé dans : $TOMCAT_DIR"
+
+# ======================================
+# Configuration des permissions
+# ======================================
 
 echo ""
 echo "Configuration des permissions..."
@@ -76,97 +139,11 @@ chmod +x "$TOMCAT_DIR"/bin/*.sh
 
 echo "Permissions configurées."
 
+# ======================================
+# Détermination de JAVA_HOME
+# ======================================
+
 echo ""
 echo "Détermination de JAVA_HOME..."
 
-JAVA_BIN="$(readlink -f "$(command -v java)")"
-JAVA_HOME="$(dirname "$(dirname "$JAVA_BIN")")"
-
-echo "JAVA_HOME=$JAVA_HOME"
-
-echo ""
-echo "Création du service systemd..."
-
-cat > /etc/systemd/system/tomcat.service <<EOF
-[Unit]
-Description=Apache Tomcat 9 Web Application Container
-After=network.target
-
-[Service]
-Type=forking
-
-User=$TOMCAT_USER
-Group=$TOMCAT_GROUP
-
-Environment=JAVA_HOME=$JAVA_HOME
-Environment=CATALINA_HOME=$TOMCAT_DIR
-Environment=CATALINA_BASE=$TOMCAT_DIR
-
-ExecStart=$TOMCAT_DIR/bin/startup.sh
-ExecStop=$TOMCAT_DIR/bin/shutdown.sh
-
-Restart=on-failure
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-echo "Service systemd créé."
-
-
-echo ""
-echo "Configuration de systemd..."
-
-systemctl daemon-reload
-systemctl enable tomcat
-systemctl start tomcat
-
-echo ""
-echo "Statut de Tomcat :"
-systemctl status tomcat --no-pager
-
-
-echo ""
-echo "Vérification du port ${TOMCAT_PORT}..."
-
-if ss -lntp | grep -q ":${TOMCAT_PORT}"; then
-    echo "Tomcat écoute sur le port ${TOMCAT_PORT}."
-else
-    echo "Erreur : Tomcat n'écoute pas sur le port ${TOMCAT_PORT}."
-    exit 1
-fi
-
-
-
-echo ""
-echo "Test HTTP de Tomcat..."
-
-if curl -f "http://localhost:${TOMCAT_PORT}/" >/dev/null; then
-    echo "Tomcat répond correctement en HTTP."
-else
-    echo "Erreur : Tomcat ne répond pas en HTTP."
-    exit 1
-fi
-
-
-APP_DIR="$TOMCAT_DIR/webapps/$APP_NAME"
-
-mkdir -p "$APP_DIR"
-
-cat > "$APP_DIR/index.html" <<EOF
-<!DOCTYPE html>
-<html>
-...
-</html>
-EOF
-
-
-echo ""
-echo "Test de l'application ${APP_NAME}..."
-
-if curl -f "http://localhost:${TOMCAT_PORT}/${APP_NAME}/" >/dev/null; then
-    echo "Application ${APP_NAME} accessible avec succès."
-else
-    echo "Erreur : l'application ${APP_NAME} n'est pas accessible."
-    exit 1
-fi
+JAVA_BIN="$(read
