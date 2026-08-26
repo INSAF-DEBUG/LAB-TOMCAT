@@ -147,3 +147,15 @@ else
     echo "Erreur : Tomcat ne répond pas en HTTP."
     exit 1
 fi
+
+
+APP_DIR="$TOMCAT_DIR/webapps/$APP_NAME"
+
+mkdir -p "$APP_DIR"
+
+cat > "$APP_DIR/index.html" <<EOF
+<!DOCTYPE html>
+<html>
+...
+</html>
+EOF
