@@ -632,6 +632,99 @@ Serveur : CentOS 7
 
 ---
 
+# 23. Installation et validation finale
+
+## 23.1 Vérification de Java
+
+La version de Java utilisée pour le laboratoire est :
+
+openjdk version "1.8.0_412"
+
+OpenJDK 8 est correctement installé et disponible pour Apache Tomcat.
+
+## 23.2 Installation et configuration de Tomcat
+
+L'installation a été réalisée à l'aide du script :
+
+scripts/install-tomcat.sh
+
+Les paramètres utilisés sont :
+
+- Version Tomcat : 9.0.120
+- Utilisateur : tomcat
+- Répertoire : /opt/tomcat
+- Port HTTP : 8080
+- Application : demo
+
+Le service tomcat.service a été créé avec systemd, activé et démarré.
+
+## 23.3 Validation du serveur Tomcat
+
+Le test HTTP du serveur a été réalisé avec succès.
+
+Résultat :
+
+Tomcat répond correctement sur le port 8080.
+
+Le serveur est accessible à l'adresse :
+
+http://localhost:8080/
+
+## 23.4 Validation de l'application demo
+
+L'application Web demo a été créée dans :
+
+/opt/tomcat/webapps/demo/
+
+Le test d'accès à l'application a également été réalisé avec succès.
+
+Résultat :
+
+Application demo accessible.
+
+L'application est accessible à l'adresse :
+
+http://localhost:8080/demo/
+
+## 23.5 Problème rencontré avec CentOS 7
+
+Lors de l'installation de Git avec yum, plusieurs erreurs de connexion aux anciens dépôts CentOS ont été rencontrées.
+
+Des messages de type :
+
+Network is unreachable
+
+ont notamment été observés lors des tentatives de connexion en IPv6.
+
+La connectivité IPv4 a été vérifiée avec succès avec :
+
+ping -4 -c 4 8.8.8.8
+
+Pour résoudre le problème d'accès aux dépôts, les anciens fichiers de configuration ont été sauvegardés et un nouveau fichier a été créé :
+
+/etc/yum.repos.d/CentOS-Vault.repo
+
+Ce fichier utilise les dépôts Vault de CentOS 7.9.2009.
+
+Après cette modification, la commande :
+
+sudo yum makecache
+
+a fonctionné correctement et Git a pu être installé.
+
+## 23.6 Remarque sur CentOS 7
+
+CentOS 7 est un système ancien dont le cycle de vie est arrivé à son terme. Cette situation explique les difficultés rencontrées avec les dépôts et certaines versions anciennes des outils disponibles.
+
+Dans le cadre de ce laboratoire, CentOS 7 est conservé car il fait partie de l'environnement pédagogique demandé.
+
+Pour un nouvel environnement de production, il est recommandé d'utiliser une distribution Linux actuellement maintenue.
+
+
+
+
+---
+
 # 24. Conclusion
 
 Le projet **LAB-TOMCAT** permet d'automatiser l'installation et la configuration d'Apache Tomcat 9.0.120 sur CentOS 7.
