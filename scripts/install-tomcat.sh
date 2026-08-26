@@ -83,3 +83,32 @@ JAVA_BIN="$(readlink -f "$(command -v java)")"
 JAVA_HOME="$(dirname "$(dirname "$JAVA_BIN")")"
 
 echo "JAVA_HOME=$JAVA_HOME"
+
+echo ""
+echo "Création du service systemd..."
+
+cat > /etc/systemd/system/tomcat.service <<EOF
+[Unit]
+Description=Apache Tomcat 9 Web Application Container
+After=network.target
+
+[Service]
+Type=forking
+
+User=$TOMCAT_USER
+Group=$TOMCAT_GROUP
+
+Environment=JAVA_HOME=$JAVA_HOME
+Environment=CATALINA_HOME=$TOMCAT_DIR
+Environment=CATALINA_BASE=$TOMCAT_DIR
+
+ExecStart=$TOMCAT_DIR/bin/startup.sh
+ExecStop=$TOMCAT_DIR/bin/shutdown.sh
+
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+echo "Service systemd créé."
