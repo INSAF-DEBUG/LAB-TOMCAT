@@ -56,3 +56,13 @@ echo "Préparation du répertoire Tomcat..."
 mkdir -p "$TOMCAT_DIR"
 
 echo "Répertoire créé : $TOMCAT_DIR"
+
+echo ""
+echo "Téléchargement de Tomcat $TOMCAT_VERSION..."
+
+TOMCAT_ARCHIVE="/tmp/apache-tomcat-${TOMCAT_VERSION}.tar.gz"
+TOMCAT_URL="https://archive.apache.org/dist/tomcat/tomcat-9/v${TOMCAT_VERSION}/bin/apache-tomcat-${TOMCAT_VERSION}.tar.gz"
+
+curl -fL "$TOMCAT_URL" -o "$TOMCAT_ARCHIVE"
+
+echo "Archive téléchargée : $TOMCAT_ARCHIVE"
