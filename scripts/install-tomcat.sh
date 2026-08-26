@@ -112,3 +112,38 @@ WantedBy=multi-user.target
 EOF
 
 echo "Service systemd créé."
+
+
+echo ""
+echo "Configuration de systemd..."
+
+systemctl daemon-reload
+systemctl enable tomcat
+systemctl start tomcat
+
+echo ""
+echo "Statut de Tomcat :"
+systemctl status tomcat --no-pager
+
+
+echo ""
+echo "Vérification du port ${TOMCAT_PORT}..."
+
+if ss -lntp | grep -q ":${TOMCAT_PORT}"; then
+    echo "Tomcat écoute sur le port ${TOMCAT_PORT}."
+else
+    echo "Erreur : Tomcat n'écoute pas sur le port ${TOMCAT_PORT}."
+    exit 1
+fi
+
+
+
+echo ""
+echo "Test HTTP de Tomcat..."
+
+if curl -f "http://localhost:${TOMCAT_PORT}/" >/dev/null; then
+    echo "Tomcat répond correctement en HTTP."
+else
+    echo "Erreur : Tomcat ne répond pas en HTTP."
+    exit 1
+fi
