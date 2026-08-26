@@ -49,3 +49,10 @@ else
 
     echo "Utilisateur $TOMCAT_USER créé."
 fi
+
+echo ""
+echo "Préparation du répertoire Tomcat..."
+
+mkdir -p "$TOMCAT_DIR"
+
+echo "Répertoire créé : $TOMCAT_DIR"
